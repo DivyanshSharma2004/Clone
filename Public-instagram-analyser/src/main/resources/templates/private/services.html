@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload JSON File</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<h1>Upload JSON File</h1>
+<form th:action="@{/logout}" method="post">
+    <button type="submit">Logout</button>
+</form>
+
+<div class="container">
+    <h1>Extract JSON Files from ZIP</h1>
+    <div class="upload-area">
+        <input type="file" id="zipFileInput" accept=".zip">
+        <label for="zipFileInput">Select ZIP File</label>
+    </div>
+    <div class="result-area" id="result-area"></div>
+</div>
+
+<!-- Added button to send files -->
+<button id="sendFilesButton" type="button">Send Files</button>
+
+<h1>Data from Spring Boot</h1>
+<div id="data-container"></div>
+
+<h1>Test Server Connection</h1>
+<button onclick="testConnection()">Send Test Data</button>
+<h1>Test Server Connection get method</h1>
+<button onclick="fetchUsers()">Send Test Data</button>
+<button id="fetchNamesButton">Fetch Conversation Names</button>
+<div id="namesContainer"></div>
+<button id="printFileMapButton">Print File Map</button>
+<div id="fileMapOutput"></div>
+<!-- Include JSZip first -->
+<script src="/js/jszip.min.js"></script>
+<!-- Include your main JavaScript file after -->
+<script type="module" src="/js/main.js"></script>
+</body>
+</html>
+
+
+<!--    document.getElementById('uploadForm').addEventListener('submit', async function(event) {-->
+<!--        event.preventDefault();-->
+<!--        const fileInput = document.getElementById('fileInput');-->
+<!--        const formData = new FormData();-->
+<!--        for (const file of fileInput.files) {-->
+<!--            formData.append('files', file);-->
+<!--        }-->
+
+<!--        try {-->
+<!--            const response = await fetch('/api/upload', {-->
+<!--                method: 'POST',-->
+<!--                body: formData-->
+<!--            });-->
+<!--            if (!response.ok) throw new Error('Network response was not ok');-->
+<!--            const results = await response.json(); // Parse JSON response-->
+
+<!--            // Display the data-->
+<!--            const container = document.getElementById('conversations-container');-->
+<!--            container.innerHTML = ''; // Clear previous content-->
+<!--            results.forEach((data, index) => {-->
+<!--                const div = document.createElement('div');-->
+<!--                div.classList.add('conversation');-->
+<!--                div.innerHTML = `-->
+<!--                    <h2>Conversation ${index + 1}</h2>-->
+<!--                    <p>Average Message Length: ${data.averageMessageLength} characters</p>-->
+<!--                    <p>Total Messages: ${data.totalMessages}</p>-->
+<!--                    <p>Longest Message Length: ${data.longestMessageLength} characters</p>-->
+<!--                    <p>Shortest Message Length: ${data.shortestMessageLength} characters</p>-->
+<!--                    <button class="button" onclick="showDetails(${index})">Show Details</button>-->
+<!--                    <div id="details-${index}" style="display:none;"></div>-->
+<!--                `;-->
+<!--                container.appendChild(div);-->
+<!--            });-->
+<!--        } catch (error) {-->
+<!--            console.error('Error fetching data:', error);-->
+<!--        }-->
+<!--    });-->
+
+<!--    function showDetails(index) {-->
+<!--        const detailsDiv = document.getElementById(`details-${index}`);-->
+<!--        if (detailsDiv.style.display === 'none') {-->
+<!--            detailsDiv.style.display = 'block';-->
+<!--            detailsDiv.innerHTML = `<p>Details for Conversation ${index + 1}</p>`;-->
+<!--            // Add more detailed information here-->
+<!--        } else {-->
+<!--            detailsDiv.style.display = 'none';-->
+<!--        }-->
+<!--    }-->

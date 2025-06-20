@@ -1,0 +1,162 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+}
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .upload-area {
+            margin-bottom: 20px;
+        }
+        .upload-area input[type="file"] {
+            display: none;
+        }
+        .upload-area label {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .result-area {
+            margin-top: 20px;
+        }
+        .result-area p {
+            margin: 5px 0;
+            color: #555;
+        }
+        .button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background: #4CAF50;
+            color: #fff;
+            padding: 10px 20px;
+            text-align: center;
+        }
+
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        nav ul li {
+            display: inline;
+            margin: 0 15px;
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        h2 {
+            color: #4CAF50;
+        }
+
+        .project-card {
+            background: #f4f4f4;
+            margin: 15px;
+            padding: 15px;
+            border: 1px solid #ccc;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px 0;
+            background: #333;
+            color: #fff;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+        }
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background: #007BFF;
+    color: #fff;
+    padding: 20px;
+    text-align: center;
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+nav ul li {
+    display: inline;
+    margin: 0 15px;
+}
+
+nav a {
+    color: #fff;
+    text-decoration: none;
+}
+
+#hero {
+    background: #f4f4f4;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.cta-button {
+    background: #28A745;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+#services {
+    padding: 20px;
+}
+
+.service-card {
+    background: #e9ecef;
+    margin: 15px;
+    padding: 15px;
+    border: 1px solid #ccc;
+}
+
+footer {
+    text-align: center;
+    padding: 10px 0;
+    background: #333;
+    color: #fff;
+}

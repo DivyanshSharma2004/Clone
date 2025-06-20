@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+    <title th:text="'Folder: ' + ${folderName}">Folder Title</title>
+    <h1 th:text="'Folder: ' + ${folderName}">Folder Title</h1>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .search-container {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 10px;
+            padding-right: 30px; /* Give space for the X button */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .clear-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 18px;
+            color: #888;
+        }
+
+        .clear-icon:hover {
+            color: #333;
+        }
+
+        .suggestions-box {
+            position: absolute;
+            top: 35px;
+            left: 0;
+            right: 0;
+            border: 1px solid #ccc;
+            border-top: none;
+            background-color: white;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 9999;
+            display: none;
+        }
+
+        .suggestion-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 30px;
+            border-radius: 15px;
+            background-color: gray;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .toggle-circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: white;
+            position: relative;
+            transition: transform 0.3s;
+        }
+
+        .neutral { background-color: gray; }
+        .green { background-color: green; }
+        .red { background-color: red; }
+        .neutral .toggle-circle { transform: translateX(0); }
+        .green .toggle-circle { transform: translateX(20px); }
+        .red .toggle-circle { transform: translateX(-20px); }
+
+        .active-states {
+            margin-top: 20px;
+        }
+
+        .active-state {
+            padding: 8px;
+            margin: 5px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .active-state .close-btn {
+            margin-left: 10px;
+            cursor: pointer;
+            background-color: transparent;
+            border: none;
+            font-size: 16px;
+            color: #333;
+        }
+
+        #submitBtn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #submitBtn:hover {
+            background-color: #45a049;
+        }
+        canvas {
+            max-width: 600px;
+            margin: 20px auto;
+            display: block;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<!-- attribute stats tabel -->
+<table>
+    <thead>
+    <tr>
+        <th>File Name</th>
+        <th>Percentage</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="entry : ${fileStats}">
+        <td th:text="${entry.key}">File Name</td>
+        <td th:text="${entry.value}">Percentage</td>
+    </tr>
+    </tbody>
+</table>
+<h2>Message Time Graph</h2>
+
+<canvas id="messageChart"></canvas>
+<div class="search-container">
+    <label for="searchBox"></label><input type="text" id="searchBox" placeholder="Search for values..." onkeyup="searchFunction()">
+    <span class="clear-icon" onclick="clearSearch()">&#10005;</span>
+    <div id="suggestions" class="suggestions-box"></div>
+</div>
+
+<div id="activeStates" class="active-states"></div>
+
+<button id="submitBtn" onclick="submitAttributes()">Submit</button>
+<!-- Button to submit and show messages -->
+
+
+<!-- Container for displaying messages -->
+<div id="messagesTableContainer"></div>
+
+<form id="messageForm">
+    <label for="folderName">Folder Name:</label>
+    <input type="text" id="folderName" name="folderName" required><br><br>
+
+    <label for="index">Index:</label>
+    <input type="number" id="index" name="index" required><br><br>
+
+    <label for="timeStamp">Timestamp:</label>
+    <input type="number" id="timeStamp" name="timeStamp" required><br><br>
+
+    <button type="submit">Fetch Messages</button>
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const folderName = /*[[${folderName}]]*/ 'defaultValue';
+    console.log(folderName); // Outputs "JohnDoe" to the console
+    /*]]>*/
+</script>
+<script src="/js/fileStats.js"></script>
+</body>
+</html>

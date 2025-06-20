@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+</head>
+<body>
+<h2>Login</h2>
+<div th:if="${param.invalid}">
+    <p>Your session is invalid. Please log in again.</p>
+</div>
+<div th:if="${param.expired}">
+    <p>Your session has expired. Please log in again.</p>
+</div>
+<!-- Traditional Form Login -->
+<form action="/login" method="post">
+    <div>
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" placeholder="Enter Username" required>
+    </div>
+    <div>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" placeholder="Enter Password" required>
+    </div>
+    <div>
+        <button type="submit">Login with Username/Password</button>
+    </div>
+</form>
+
+<h3>Or</h3>
+
+<!-- Google OAuth2 Login -->
+<a href="/oauth2/authorization/google">
+    <button type="button">Login with Google</button>
+</a>
+
+</body>
+</html>
