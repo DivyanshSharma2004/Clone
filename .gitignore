@@ -1,0 +1,6 @@
+/Public-instagram-analyser/src/main/java/com/example/demo/config
+/.idea
+*.iml
+/out
+/target
+src/main/resources/application.properties
