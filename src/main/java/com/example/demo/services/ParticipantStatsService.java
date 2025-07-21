@@ -1,6 +1,6 @@
 package com.example.demo.services;
 
-import com.example.demo.enteties.ParticipantStats;
+import com.example.demo.model.ParticipantStats;
 import com.example.demo.model.Conversation;
 import org.springframework.stereotype.Service;
 

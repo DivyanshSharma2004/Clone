@@ -1,4 +1,4 @@
-package com.example.demo.enteties;
+package com.example.demo.model;
 
 public class ParticipantStats {
     String name;

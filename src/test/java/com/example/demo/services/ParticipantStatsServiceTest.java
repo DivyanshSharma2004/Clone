@@ -1,10 +1,5 @@
 package com.example.demo.services;
 
-import com.example.demo.enteties.ParticipantStats;
-
-import java.util.HashMap;
-import java.util.Map;
-
 public class ParticipantStatsServiceTest {
 
     /**

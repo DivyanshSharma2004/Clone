@@ -1,9 +1,8 @@
 package com.example.demo.enteties;
 
+import com.example.demo.model.Attributes;
 import com.example.demo.model.Conversation;
 import com.example.demo.model.Message;
-import com.example.demo.services.AttributesService;
-import com.example.demo.services.ConversationStatsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

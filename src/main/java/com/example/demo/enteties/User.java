@@ -1,20 +1,22 @@
 package com.example.demo.enteties;
 
+import jakarta.persistence.*;
 import lombok.Data;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 
+
+@Entity
+@Table(name = "users")
 @Data
-@Document(collection = "users")
 public class User {
     @Id
-    private String id;
-    private String username;
-    private String password;
-    private String role; // e.g., ROLE_USER, ROLE_ADMIN
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    public void setUsername(String username) {
+    private String googleId;
+    private String email;
+    private String name;
+    private String pictureUrl;
 
-    }
+    private String role; // e.g., ROLE_USER
 }

@@ -1,10 +1,11 @@
 package com.example.demo.repository;
 
 import com.example.demo.enteties.User;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface UserRepository extends MongoRepository<User, String> {
-    User findByUsername(String username);
+import java.util.Optional;
+
+public interface UserRepository extends JpaRepository<User, Long> {
+    Optional<User> findByGoogleId(String googleId);
+    Optional<User> findByEmail(String email);
 }
-
-

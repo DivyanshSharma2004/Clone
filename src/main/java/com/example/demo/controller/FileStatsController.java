@@ -1,6 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.enteties.ParticipantStats;
+import com.example.demo.model.ParticipantStats;
 import com.example.demo.enteties.RequestData;
 import com.example.demo.model.Conversation;
 import com.example.demo.model.Message;

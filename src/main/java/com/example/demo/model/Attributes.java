@@ -1,8 +1,5 @@
-package com.example.demo.enteties;
+package com.example.demo.model;
 
-import com.example.demo.model.Conversation;
-import com.example.demo.model.Message;
-import com.example.demo.model.Participant;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
@@ -10,12 +7,10 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
-import com.example.demo.enteties.Attributes;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.vdurmont.emoji.EmojiParser; //emoji detector
 @Component
 public class Attributes {
     @JsonProperty("attributes")

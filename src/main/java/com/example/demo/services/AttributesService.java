@@ -1,19 +1,13 @@
 package com.example.demo.services;
 
-import com.example.demo.enteties.Attributes;
+import com.example.demo.model.Attributes;
 import com.example.demo.model.Conversation;
 import com.example.demo.model.Message;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
