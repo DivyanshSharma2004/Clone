@@ -15,17 +15,16 @@ public class UserProfile {
     // Getters & Setters
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
+    private UUID id;//uses uuid for userprofile as needs to be more secure
 
-    @Column(nullable = false, unique = true)
-    private String email;
-
-    private String username;
+    private String name;
     private String profilePic;
-
     private String bio;
 
     @ElementCollection
     private List<String> interests;
 
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
 }
