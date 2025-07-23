@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+    <title>User Home</title>
+</head>
+<body>
+    <h1>Welcome, <span th:text="${user.name}">User</span>!</h1>
+    <p>Email: <span th:text="${user.email}"></span></p>
+    <img th:src="${user.profilePicture}" alt="Profile picture" width="100" height="100">
+
+    <!-- Add links to match page, insights page, etc. -->
+    <a th:href="@{api/user/profile}">View/Edit Profile</a>
+
+</body>
+</html>
