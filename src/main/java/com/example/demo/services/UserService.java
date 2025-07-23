@@ -15,7 +15,7 @@ import java.util.Collections;
 import java.util.Optional;
 
 @Service
-public class CustomOAuth2UserService extends DefaultOAuth2UserService {
+public class UserService extends DefaultOAuth2UserService {
 
     @Autowired
     private UserRepository userRepository;
@@ -24,6 +24,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
      * Handles the OAuth2 login process.
      * If the user already exists in the database (found by Google ID), it loads their info.
      * Otherwise, creates a new user entry using the data returned by Google.
+     *
+     * ai-generated comment
      *
      * @param request the incoming OAuth2 login request
      * @return an authenticated OAuth2User with assigned roles and attributes
@@ -59,4 +61,5 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 "sub"
         );
     }
+
 }
