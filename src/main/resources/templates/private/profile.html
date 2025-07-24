@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Profile</title>
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <style>
+        body { font-family: sans-serif; max-width: 500px; margin: auto; padding: 2rem; }
+        input, textarea, button { display: block; margin-top: 1rem; width: 100%; padding: 0.5rem; }
+        .image-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
+        .image-option { cursor: pointer; border: 2px solid transparent; border-radius: 6px; }
+        .image-option.selected { border-color: #8B33FF; }
+    </style>
+</head>
+<body>
+<h2>Create or Edit Your Profile</h2>
+<form id="profileForm" enctype="multipart/form-data">
+    <input type="text" id="name" placeholder="Your name" th:value="${profile?.name}" required>
+    <textarea id="bio" placeholder="Your bio" th:text="${profile?.bio}"></textarea>
+    <input type="text" id="interests" placeholder="Your interests" th:value="${profile?.interests}">
+
+    <div class="image-grid" id="imageGrid">
+        <img th:src="@{/images/profiles/profileimg1.png}" class="image-option" data-filename="profileimg1.png" width="128" height="128">
+        <img th:src="@{/images/profiles/profileimg2.png}" class="image-option" data-filename="profileimg2.png" width="128" height="128">
+        <img th:src="@{/images/profiles/profileimg3.png}" class="image-option" data-filename="profileimg3.png" width="128" height="128">
+        <img th:src="@{/images/profiles/profileimg4.png}" class="image-option" data-filename="profileimg4.png" width="128" height="128">
+    </div>
+
+    <button type="submit">Save Profile</button>
+</form>
+
+<script>
+    const imageOptions = document.querySelectorAll('.image-option');
+    let selectedImageFilename = null;
+
+    imageOptions.forEach(img => {
+        img.addEventListener('click', () => {
+            imageOptions.forEach(i => i.classList.remove('selected'));
+            img.classList.add('selected');
+            selectedImageFilename = img.getAttribute('data-filename');
+        });
+    });
+
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData();
+        formData.append('name', document.getElementById('name').value);
+        formData.append('bio', document.getElementById('bio').value);
+        formData.append('interests', document.getElementById('interests').value);
+
+        if (selectedImageFilename) {
+            formData.append('selectedImage', selectedImageFilename);
+        }
+
+        // Get CSRF token and header name from meta tags
+        const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+        const res = await fetch('/api/user/profile', {
+            method: 'POST',
+            headers: {
+                [csrfHeader]: csrfToken // 👈 attach CSRF token here
+            },
+            body: formData
+        });
+
+        if (res.ok) {
+            alert("Profile saved!");
+        } else {
+            alert("Something went wrong.");
+        }
+    });
+</script>
+</body>
+</html>
