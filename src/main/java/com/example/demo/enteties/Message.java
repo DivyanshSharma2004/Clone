@@ -2,10 +2,14 @@ package com.example.demo.enteties;
 
 import com.example.demo.enteties.UserProfile;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Instant;
 import java.util.UUID;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "messages")
 public class Message {
@@ -30,18 +34,4 @@ public class Message {
     // Constructors, getters, setters
     public Message() {}
 
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-
-    public Match getMatch() { return match; }
-    public void setMatch(Match match) { this.match = match; }
-
-    public UserProfile getSender() { return sender; }
-    public void setSender(UserProfile sender) { this.sender = sender; }
-
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
-
-    public Instant getSentAt() { return sentAt; }
-    public void setSentAt(Instant sentAt) { this.sentAt = sentAt; }
 }

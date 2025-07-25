@@ -2,6 +2,7 @@ package com.example.demo.services;
 
 import com.example.demo.enteties.User;
 import com.example.demo.repository.UserRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -14,11 +15,17 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.Collections;
 import java.util.Optional;
 
+import static java.nio.file.Files.setAttribute;
+
 @Service
 public class UserService extends DefaultOAuth2UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    //User session object to bind data too and recall data from.
+    @Autowired
+    private HttpSession httpSession;
 
     /**
      * Handles the OAuth2 login process.
@@ -45,6 +52,7 @@ public class UserService extends DefaultOAuth2UserService {
 
         if (optionalUser.isPresent()) {
             user = optionalUser.get();
+            httpSession.setAttribute("userId", user.getId());
         } else {
             user = new User();
             user.setGoogleId(googleId);
@@ -53,6 +61,7 @@ public class UserService extends DefaultOAuth2UserService {
             user.setPictureUrl(picture);
             user.setRole("ROLE_USER");
             userRepository.save(user);
+            httpSession.setAttribute("userId", user.getId());
         }
 
         return new DefaultOAuth2User(

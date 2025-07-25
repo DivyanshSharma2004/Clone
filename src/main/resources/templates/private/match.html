@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+    <title>Find Your Match</title>
+    <meta charset="UTF-8" />
+    <script>
+        let candidatesBatch = [];
+        let currentIndex = 0;
+        let currentCandidateId = null;
+
+        async function fetchNextBatch() {
+            const response = await fetch('/match/next');
+            if (response.status === 204) {
+                document.getElementById("match-info").innerHTML = "No more users found.";
+                currentCandidateId = null;
+                return false;
+            }
+            candidatesBatch = await response.json();
+            currentIndex = 0;
+            return true;
+        }
+
+        function showCandidate(candidate) {
+            currentCandidateId = candidate.id;
+            document.getElementById("name").innerText = candidate.name;
+            document.getElementById("bio").innerText = candidate.bio;
+            document.getElementById("interests").innerText = candidate.interests.join(", ");
+            document.getElementById("profile-pic").src = candidate.profilePic;
+        }
+
+        async function getNextCandidate() {
+            if (currentIndex >= candidatesBatch.length) {
+                const gotBatch = await fetchNextBatch();
+                if (!gotBatch) return;
+            }
+            showCandidate(candidatesBatch[currentIndex]);
+            currentIndex++;
+        }
+
+        async function swipe(endpoint) {
+            if (!currentCandidateId) {
+                alert("No user to swipe on.");
+                return;
+            }
+
+            const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute("content");
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
+
+            const url = `${endpoint}?targetProfileId=${currentCandidateId}`;
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    [csrfHeader]: csrfToken
+                }
+            });
+
+            if (response.ok) {
+                await getNextCandidate();
+            } else {
+                alert("Swipe failed: " + await response.text());
+            }
+        }
+
+        window.onload = getNextCandidate;
+    </script>
+</head>
+<body>
+<h1>Meet Your Match!</h1>
+
+<div id="match-info">
+    <img id="profile-pic" src="" alt="Profile Picture" width="200" height="200" />
+    <h2 id="name">Name</h2>
+    <p id="bio">Bio</p>
+    <p><strong>Interests:</strong> <span id="interests"></span></p>
+</div>
+
+<div style="margin-top: 20px;">
+    <button onclick="swipe('/match/swipe-left')"> Swipe Left</button>
+    <button onclick="swipe('/match/swipe-right')"> Swipe Right</button>
+    <button onclick="swipe('/match/block')"> Block</button>
+</div>
+</body>
+</html>
