@@ -50,6 +50,7 @@ public class UserController {
      * Redirects to login if not authenticated. else it fetches the user
      * from the database using their Google ID and passes it to the thymeleaf model.
      */
+    //TODO: low priority: refactor this to include more of the code in the service
     @GetMapping("/home")
     public String userHome(@AuthenticationPrincipal OAuth2User oauthUser, Model model) {
         //If user isnt authenticated redirect them

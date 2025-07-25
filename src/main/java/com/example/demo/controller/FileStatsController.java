@@ -1,7 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.ParticipantStats;
-import com.example.demo.enteties.RequestData;
+import com.example.demo.enteties.RequestDTO;
 import com.example.demo.model.Conversation;
 import com.example.demo.model.Message;
 import com.example.demo.services.AttributesService;
@@ -76,7 +76,7 @@ public class FileStatsController {
      */
     @PostMapping("/getMessagesByAttributes")
     public ResponseEntity<ArrayList<Message>> getMessagesByAttributes(
-            @RequestBody RequestData requestData) { // Accept the data as JSON in the request body
+            @RequestBody RequestDTO requestData) { // Accept the data as JSON in the request body
 
         // Extract data from the request body
         String folderName = requestData.getFolderName();
