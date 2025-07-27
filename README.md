@@ -8,12 +8,15 @@ You upload your conversations, choose the 3 people who you have the best convers
 - Backend analyzes your communication patterns and interests  
 - Get friend recommendations based on similarity of conversation dynamics  
 - Focus on genuine friendship, not dating  
-- Data privacy: Your conversations stay secure  
+- Data privacy: Your conversations stay secure
+- allows you to message these people
 
 🚀 **Tech Stack:**  
 - Java Spring Boot (backend)  
 - html,css,js (frontend)  
-- postgresQL
+- postgresQL + (pg vector)
+- google cloud console
+- 
 ---
 
 ## 🌈 Why Clone?
