@@ -68,7 +68,7 @@ public class FriendshipController {
     public ResponseEntity<List<ChatMessageDTO>> getMessagesByFriendship(@PathVariable UUID friendshipId) {
         List<ChatMessage> messages = chatMessageService.getMessagesByFriendshipId(friendshipId);
         List<ChatMessageDTO> dtos = messages.stream()
-                .map(ChatMessageDTO::fromEntity)
+                .map(ChatMessageDTO::createMessageDTO)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
     }

@@ -1,6 +1,5 @@
 package com.example.demo.enteties;
 
-import com.example.demo.enteties.UserProfile;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,26 +11,27 @@ import java.util.UUID;
 @Getter
 @Entity
 @Table(name = "messages")
-public class Message {
+public class ChatMessage {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "match_id", nullable = false)
-    private Match match;
+    @JoinColumn(name = "friendship_id", nullable = false)
+    private Friendship friendship;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sender_id", nullable = false)
-    private UserProfile sender;
+    @Column(name = "sender_id", nullable = false)
+    private UUID senderId;
+
+    @Column(name = "receiver_id", nullable = false)
+    private UUID receiverId;
 
     @Column(nullable = false, length = 10000)
     private String content;
 
     @Column(nullable = false)
-    private Instant sentAt;
+    private Instant timestamp;
 
-    // Constructors, getters, setters
-    public Message() {}
+
 
 }
