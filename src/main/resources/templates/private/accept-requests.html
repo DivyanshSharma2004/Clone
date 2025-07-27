@@ -1,0 +1,85 @@
+<!-- accept-requests.html -->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>Pending Match Requests</title>
+    <style>
+    <!-- ai generated page, i understand the code fully-->
+        body { font-family: sans-serif; padding: 20px; background: #f0f2f5; }
+        .request { background: white; padding: 15px 20px; margin: 10px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        button { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; }
+        .accept { background: #4caf50; color: white; }
+        .reject { background: #f44336; color: white; }
+    </style>
+</head>
+<body>
+
+<h2>Pending Friend Requests</h2>
+<div id="requests"><p>Loading...</p></div>
+
+<script>
+    async function loadRequests() {
+      const container = document.getElementById('requests');
+      container.innerHTML = '<p>Loading...</p>';
+
+      try {
+        const res = await fetch('/match/requests'); // <-- adjusted endpoint
+        if (!res.ok) throw new Error("Failed to fetch requests");
+        const data = await res.json();
+
+        container.innerHTML = '';
+        if (data.length === 0) {
+          container.innerHTML = '<p>No pending requests</p>';
+          return;
+        }
+
+        data.forEach(req => {
+          const div = document.createElement('div');
+          div.className = 'request';
+          div.innerHTML = `
+            <span>${req.senderName}</span>
+            <div>
+              <button class="accept" onclick="accept('${req.matchId}', this)">Accept</button>
+              <button class="reject" onclick="reject('${req.matchId}', this)">Reject</button>
+            </div>
+          `;
+          container.appendChild(div);
+        });
+      } catch (err) {
+        container.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+      }
+    }
+
+    const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+async function accept(matchId, btn) {
+  btn.disabled = true;
+  await fetch(`/match/${matchId}/accept`, {
+    method: 'POST',
+    headers: {
+      [csrfHeader]: csrfToken
+    }
+  });
+  loadRequests();
+}
+
+async function reject(matchId, btn) {
+  btn.disabled = true;
+  await fetch(`/match/${matchId}/reject`, {
+    method: 'POST',
+    headers: {
+      [csrfHeader]: csrfToken
+    }
+  });
+  loadRequests();
+}
+
+    loadRequests();
+</script>
+
+</body>
+</html>

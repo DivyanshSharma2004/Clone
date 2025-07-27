@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.enteties.MatchDTO;
 import com.example.demo.enteties.UserProfileDTO;
 import com.example.demo.services.MatchService;
 import com.example.demo.services.UserService;
@@ -50,8 +51,7 @@ public class MatchController {
     }
 
     //endpoint for when user swipes right on a user gets stored in the match service as pending
-/*TODO: add lines of code in this that checks if the other person has this user as pending as well, if they do then change user and potential users match as active insetad of pending
-*/
+
     @PostMapping("/swipe-right")
     public ResponseEntity<?> swipeRight(@RequestParam UUID targetProfileId) {
         try {
@@ -62,7 +62,7 @@ public class MatchController {
         }
     }
     //end point for when user blocks another user
-    //TODO: make more secure by making it that if user A blocks user B, User B cant send user A requests
+
     @PostMapping("/block")
     public ResponseEntity<?> blockUser(@RequestParam UUID targetProfileId) {
         try {
@@ -72,4 +72,40 @@ public class MatchController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    //endpoints for accepting requests etc
+
+    @GetMapping("/accept-requests")
+    public String showAcceptRequestsPage() {
+        return "/private/accept-requests";
+    }
+
+    @GetMapping("/requests")
+    public ResponseEntity<List<MatchDTO>> getPendingRequests() {
+        List<MatchDTO> pendingRequests = matchService.getPendingRequestsForCurrentUser();
+        return ResponseEntity.ok(pendingRequests);
+    }
+
+    @PostMapping("/{matchId}/accept")
+    public ResponseEntity<?> acceptMatch(@PathVariable UUID matchId) {
+        try {
+            matchService.acceptMatch(matchId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{matchId}/reject")
+    public ResponseEntity<?> rejectMatch(@PathVariable UUID matchId) {
+        try {
+            matchService.rejectMatch(matchId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    //and now finally a query that fetches all friendships that are active or matches that are active for me
+    //should create a reusabel method that takes in different parameteres to if user A wanted to change relationship status, it effect user b friendship too
+
+
 }

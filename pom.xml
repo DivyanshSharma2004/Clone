@@ -92,6 +92,12 @@
 			<scope>42.5.0</scope>
 		</dependency>
 
+		<!-- Spring Boot Starter WebSocket (STOMP) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
+		</dependency>
+
 		<!-- Spring Boot Starter Thymeleaf: Templating engine for rendering web pages -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

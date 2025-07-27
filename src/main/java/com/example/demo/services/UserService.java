@@ -27,6 +27,9 @@ public class UserService extends DefaultOAuth2UserService {
     @Autowired
     private HttpSession httpSession;
 
+    @Autowired
+    MatchService matchService;
+
     /**
      * Handles the OAuth2 login process.
      * If the user already exists in the database (found by Google ID), it loads their info.
@@ -62,6 +65,7 @@ public class UserService extends DefaultOAuth2UserService {
             user.setRole("ROLE_USER");
             userRepository.save(user);
             httpSession.setAttribute("userId", user.getId());
+            httpSession.setAttribute("profileId",matchService.getCurrentUserProfileId());
         }
 
         return new DefaultOAuth2User(
