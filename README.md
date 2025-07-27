@@ -13,7 +13,7 @@ You upload your conversations, choose the 3 people who you have the best convers
 🚀 **Tech Stack:**  
 - Java Spring Boot (backend)  
 - html,css,js (frontend)  
-- MongoDB
+- postgresQL
 ---
 
 ## 🌈 Why Clone?
