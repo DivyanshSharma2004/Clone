@@ -21,6 +21,8 @@ public class HomeController {
         return "public/home/contact"; // contact.html
     }
 
+    @GetMapping("/user/home")
+    public String userHome(){return "private/home";} //user home redirect after login
 
 //    @GetMapping("home/services")
 //    public String services() {

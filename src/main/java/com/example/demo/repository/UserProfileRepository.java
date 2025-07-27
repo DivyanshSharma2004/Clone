@@ -26,6 +26,7 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, UUID> 
      * @return an Optional containing the profile, if found
      */
     Optional<UserProfile> findByUser(User user);
+    Optional<UserProfile> findByUserId(Long userId);//changed to using long much easier for null values
 
     //generated via chatgpt
     @Query(value = """

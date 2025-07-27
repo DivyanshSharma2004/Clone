@@ -24,6 +24,9 @@ public class Match {
     @JoinColumn(name = "user2_id", nullable = false)
     private UserProfile user2;
 
+    @ManyToOne
+    private UserProfile requester;
+
     @Column(nullable = false)
     private Instant matchedAt;
 
