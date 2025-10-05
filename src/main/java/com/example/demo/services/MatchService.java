@@ -39,6 +39,7 @@ public class MatchService {
         }
         return userId;
     }
+    //made with help of ai (i undersatnd all of the code)
     public UUID getCurrentUserProfileId() {
         // Try session cache
         UUID profileId = (UUID) httpSession.getAttribute("profileId");
@@ -205,8 +206,8 @@ public class MatchService {
                 .orElseThrow(() -> new RuntimeException("match not found"));
 
         UUID currentProfileId = getCurrentUserProfileId();
-    
-        if (match.getRequester().getId().equals(currentProfileId)) { //incase logic breaks 
+
+        if (match.getRequester().getId().equals(currentProfileId)) { //incase logic breaks
             throw new RuntimeException("user cant accept their own request");
         }
 
@@ -216,16 +217,24 @@ public class MatchService {
         UserProfile user1 = match.getUser1();
         UserProfile user2 = match.getUser2();
 
-        // store friendship with uuid ordered smaller first 
+        // store friendship with uuid ordered smaller first
         UserProfile first = user1.getId().compareTo(user2.getId()) < 0 ? user1 : user2;
         UserProfile second = first == user1 ? user2 : user1;
-    
-        if (!friendshipRepository.existsBetween(first, second)) {
-            Friendship friendship = new Friendship();
-            friendship.setUser(first);
-            friendship.setFriend(second);
-            friendship.setCreatedAt(Instant.now());
-            friendshipRepository.save(friendship);
+
+        // bidirectional friendships, quicker lookup time but space wise worse, matches logic in the friendship service
+        if (!friendshipRepository.existsBetween(user1, user2)) {
+            Friendship friendship1 = new Friendship();
+            friendship1.setUser(user1);
+            friendship1.setFriend(user2);
+            friendship1.setCreatedAt(Instant.now());
+
+            Friendship friendship2 = new Friendship();
+            friendship2.setUser(user2);
+            friendship2.setFriend(user1);
+            friendship2.setCreatedAt(Instant.now());
+
+            friendshipRepository.save(friendship1);
+            friendshipRepository.save(friendship2);
         }
     }
 

@@ -3,10 +3,11 @@ package com.example.demo.repository;
 import com.example.demo.enteties.Friendship;
 import com.example.demo.enteties.UserProfile;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,10 +15,16 @@ public interface FriendshipRepository extends JpaRepository<Friendship, UUID> {
 
 
     //use to avoid lazy-instalization coded by chatgpt to debug this query^
+//    @Query("SELECT f FROM Friendship f " +
+//            "JOIN FETCH f.user " +
+//            "JOIN FETCH f.friend " +
+//            "WHERE f.user.id = :id OR f.friend.id = :id")
+//    List<Friendship> findFriendshipsWithUsers(@Param("id") UUID id);
+
+    //use to avoid lazy-instalization coded by chatgpt to debug this query
     @Query("SELECT f FROM Friendship f " +
-            "JOIN FETCH f.user " +
             "JOIN FETCH f.friend " +
-            "WHERE f.user.id = :id OR f.friend.id = :id")
+            "WHERE f.user.id = :id")
     List<Friendship> findFriendshipsWithUsers(@Param("id") UUID id);
 
     /**
@@ -52,5 +59,12 @@ public interface FriendshipRepository extends JpaRepository<Friendship, UUID> {
     WHERE f.id = :friendshipId AND (f.user.id = :userId OR f.friend.id = :userId)
 """)
     boolean isUserInFriendship(@Param("userId") UUID userId, @Param("friendshipId") UUID friendshipId);
+
+    //delete friendship both ways just 1 method call needed
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM Friendship f WHERE (f.user.id = :userId AND f.friend.id = :friendId) " +
+            "OR (f.user.id = :friendId AND f.friend.id = :userId)")
+    void deleteByUserIdAndFriendId(@Param("userId") UUID userId, @Param("friendId") UUID friendId);
 
 }

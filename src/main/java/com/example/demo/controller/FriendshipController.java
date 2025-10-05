@@ -3,7 +3,9 @@ package com.example.demo.controller;
 import com.example.demo.enteties.ChatMessage;
 import com.example.demo.enteties.ChatMessageDTO;
 import com.example.demo.enteties.FriendshipDTO;
+import com.example.demo.enteties.UserProfile;
 import com.example.demo.repository.ChatMessageRepository;
+import com.example.demo.repository.UserProfileRepository;
 import com.example.demo.services.FriendshipService;
 import com.example.demo.services.ChatMessageService;
 import jakarta.servlet.http.HttpSession;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -32,6 +35,8 @@ public class FriendshipController {
     private ChatMessageService chatMessageService;
     @Autowired
     private ChatMessageRepository chatMessageRepository;
+    @Autowired
+    private UserProfileRepository userProfileRepository;
     @Autowired
     private HttpSession httpSession;
 
@@ -87,5 +92,32 @@ public class FriendshipController {
         message.setTimestamp(Instant.now());
         chatMessageRepository.save(message);
         messagingTemplate.convertAndSend("/topic/friendship/" + friendshipId, message);
+    }
+    /**
+     * Removes a bidirectional friendship between the current user and a friend.
+     *
+     * @param friendId The UUID of the friend to remove.
+     * @return ResponseEntity with success message.
+     */
+    @DeleteMapping("/friendships/{friendId}")
+    @ResponseBody
+    public ResponseEntity<String> removeFriendship(@PathVariable UUID friendId) {
+        UUID currentProfileId = (UUID) httpSession.getAttribute("profileId");
+
+        if (currentProfileId == null) {
+            return ResponseEntity.status(401).body("User not logged in");
+        }
+        friendshipService.removeFriendshipById(currentProfileId,friendId);
+        Optional<UserProfile> friendOpt=userProfileRepository.findById(friendId);
+        Optional<UserProfile> userOpt= userProfileRepository.findById(currentProfileId);
+        if (userOpt.isPresent()&&friendOpt.isPresent()) {
+            UserProfile user = userOpt.get();
+            UserProfile friend = friendOpt.get();
+            friendshipService.removeFriendship(user,friend);
+            friendshipService.removeFriendshipById(currentProfileId,friendId);
+            return ResponseEntity.ok("Friendship removed successfully");
+        } else {
+            return ResponseEntity.ok("Friendship removed unsuccessfully");
+        }
     }
 }
