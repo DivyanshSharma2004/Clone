@@ -30,6 +30,7 @@
 			<artifactId>emoji-java</artifactId>
 			<version>5.1.1</version>
 		</dependency>
+
 <!--		for testing-->
 		<dependency>
 			<groupId>javax.servlet</groupId>
@@ -96,6 +97,11 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-websocket</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-messaging</artifactId>
 		</dependency>
 
 		<!-- Spring Boot Starter Thymeleaf: Templating engine for rendering web pages -->

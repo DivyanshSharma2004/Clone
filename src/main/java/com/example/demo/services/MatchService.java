@@ -1,10 +1,7 @@
 package com.example.demo.services;
 
 import com.example.demo.enteties.*;
-import com.example.demo.repository.FriendshipRepository;
-import com.example.demo.repository.MatchRepository;
-import com.example.demo.repository.UserProfileRepository;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.*;
 import jakarta.servlet.http.HttpSession;
 
 import java.util.*;
@@ -28,6 +25,8 @@ public class MatchService {
     private HttpSession httpSession;
     @Autowired
     private FriendshipRepository friendshipRepository;
+    @Autowired
+    private ConversationRepository conversationRepository;
     //batch size for the getMatchCandidatesBatch to use
     private static final int BATCHSIZE = 10;
 
@@ -39,6 +38,7 @@ public class MatchService {
         }
         return userId;
     }
+    //made with help of ai (i undersatnd all of the code)
     public UUID getCurrentUserProfileId() {
         // Try session cache
         UUID profileId = (UUID) httpSession.getAttribute("profileId");
@@ -205,8 +205,8 @@ public class MatchService {
                 .orElseThrow(() -> new RuntimeException("match not found"));
 
         UUID currentProfileId = getCurrentUserProfileId();
-    
-        if (match.getRequester().getId().equals(currentProfileId)) { //incase logic breaks 
+
+        if (match.getRequester().getId().equals(currentProfileId)) { //incase logic breaks
             throw new RuntimeException("user cant accept their own request");
         }
 
@@ -216,16 +216,25 @@ public class MatchService {
         UserProfile user1 = match.getUser1();
         UserProfile user2 = match.getUser2();
 
-        // store friendship with uuid ordered smaller first 
+        // store friendship with uuid ordered smaller first
         UserProfile first = user1.getId().compareTo(user2.getId()) < 0 ? user1 : user2;
-        UserProfile second = first == user1 ? user2 : user1;
-    
-        if (!friendshipRepository.existsBetween(first, second)) {
-            Friendship friendship = new Friendship();
-            friendship.setUser(first);
-            friendship.setFriend(second);
-            friendship.setCreatedAt(Instant.now());
-            friendshipRepository.save(friendship);
+        UserProfile second = first == user1 ? user2 : user1; //abandonded appraoch speed > size of db.
+
+        // create conversation if not exists, safer for when people stop being friends and then again
+        Conversation conversation = conversationRepository
+                .find1on1Conversation(user1.getId(), user2.getId())
+                .orElseGet(() -> conversationRepository.save(Conversation.create1on1(user1, user2)));
+
+        // create bidirectional friendships (for quick lookup)
+        if (!friendshipRepository.existsBetween(user1, user2)) {
+            Friendship friendship1 = new Friendship(user1, user2, conversation);
+            friendship1.setCreatedAt(Instant.now());
+
+            Friendship friendship2 = new Friendship(user2, user1, conversation);
+            friendship2.setCreatedAt(Instant.now());
+
+            friendshipRepository.save(friendship1);
+            friendshipRepository.save(friendship2);
         }
     }
 

@@ -3,6 +3,10 @@
 <head>
     <title>Chat</title>
     <meta charset="UTF-8"/>
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
@@ -41,147 +45,196 @@
         </div>
     </div>
 </div>
-
+<!-- language: JavaScript -->
 <script th:inline="javascript">
     /*<![CDATA[*/
         const currentProfileId = /*[[${session.profileId}]]*/ '';
     /*]]>*/
 </script>
-<script>
-    let stompClient = null;
-    let currentFriendshipId = null;
-    let subscriptions = {};
 
-    // Fetch friends and populate sidebar
-    async function loadFriends() {
-        const res = await fetch('/message/friendships');
-        const friends = await res.json();
+<!-- language: JavaScript -->
+<script type="text/javascript">
+let stompClient = null;
+let currentConversationId = null;
+let currentFriendId = null; // <-- track the friend we are chatting with
+let subscriptions = {};
 
-        const friendList = document.getElementById('friendList');
-        friendList.innerHTML = '';
+// Fetch friends and populate sidebar
+async function loadFriends() {
+    const res = await fetch('/message/friendships');
+    const friends = await res.json();
 
-        friends.forEach(friend => {
-            const div = document.createElement('div');
-            div.className = 'friend-item';
-            div.dataset.friendshipId = friend.id;
-            div.dataset.friendUsername = friend.friendUsername;
-            div.dataset.friendId = friend.friendId;
+    const friendList = document.getElementById('friendList');
+    friendList.innerHTML = '';
 
-            div.innerHTML = `
-                <img src="${friend.friendProfilePictureUrl || 'https://via.placeholder.com/40'}" alt="pic" width="40" height="40" class="rounded-circle me-2" />
-                <strong>${friend.friendUsername}</strong>
-            `;
-
-            div.addEventListener('click', () => {
-                selectFriend(friend.id, friend.friendUsername);
-            });
-
-            friendList.appendChild(div);
-        });
-    }
-
-    // Select friend to chat
-    async function selectFriend(friendshipId, friendUsername) {
-        if (currentFriendshipId === friendshipId) return; // no change
-
-        currentFriendshipId = friendshipId;
-
-        document.getElementById('chatHeader').textContent = `Chatting with ${friendUsername}`;
-        document.getElementById('messages').innerHTML = '';
-        document.getElementById('chatForm').style.display = 'flex';
-
-        // Highlight active friend
-        document.querySelectorAll('.friend-item').forEach(elem => {
-            elem.classList.toggle('active', elem.dataset.friendshipId === friendshipId);
-        });
-
-        // Unsubscribe previous subscription
-        if (subscriptions[currentFriendshipId]) {
-            subscriptions[currentFriendshipId].unsubscribe();
-            delete subscriptions[currentFriendshipId];
-        }
-
-        // Fetch old messages
-        const res = await fetch(`/message/friendship/${friendshipId}`);
-        const messages = await res.json();
-        messages.forEach(displayMessage);
-
-        // Subscribe to STOMP topic for live messages
-        subscriptions[friendshipId] = stompClient.subscribe(`/topic/friendship/${friendshipId}`, (msg) => {
-            const message = JSON.parse(msg.body);
-            displayMessage(message);
-        });
-    }
-
-    // Display message in chat
-    function displayMessage(message) {
-        const container = document.getElementById('messages');
-
-        // Avoid duplicate messages if already present (optional)
-        if (document.getElementById(`msg-${message.id}`)) return;
-
+    friends.forEach(friend => {
         const div = document.createElement('div');
-        div.id = `msg-${message.id}`;
-
-        // Simple styling: messages sent by current user right-aligned
-        const isSentByCurrentUser = message.senderId === currentProfileId;
-        div.className = isSentByCurrentUser ? 'message-sent' : 'message-received';
-
-        const time = new Date(message.timestamp).toLocaleTimeString();
+        div.className = 'friend-item';
+        div.dataset.friendshipId = friend.id;
+        div.dataset.friendUsername = friend.friendUsername;
+        div.dataset.conversationId = friend.conversationId; 
 
         div.innerHTML = `
-            <div class="message-content">
-                ${message.content} <br/><small class="text-muted">${time}</small>
+            <div class="friend-info">
+                <img src="${friend.friendProfilePictureUrl || 'https://via.placeholder.com/40'}"
+                     alt="pic" width="40" height="40" class="rounded-circle" />
+                <strong>${friend.friendUsername}</strong>
             </div>
+            <button class="remove-btn" title="Remove Friend">🗑️</button>
         `;
 
-        container.appendChild(div);
-        container.scrollTop = container.scrollHeight; // scroll to bottom
-    }
+        // Clicking anywhere except the remove button opens chat
+        div.addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-btn')) return;
+            selectFriend(
+                friend.id,
+                friend.friendUsername,
+                friend.conversationId,
+                friend.friendId   // <-- pass friendId here
 
-    // Send message handler
-    function sendMessage(event) {
-        event.preventDefault();
-
-        if (!currentFriendshipId) {
-            alert('Select a friend first!');
-            return;
-        }
-
-        const input = document.getElementById('chatInput');
-        const content = input.value.trim();
-        if (!content) return;
-
-        // Build message object
-        const message = {
-            friendshipId: currentFriendshipId,
-            senderId: currentProfileId,
-            content: content
-        };
-
-        stompClient.send('/app/sendMessage', {}, JSON.stringify(message));
-        input.value = '';
-    }
-
-    // Initialize STOMP connection
-    function connect() {
-        const socket = new SockJS('/ws');
-        stompClient = Stomp.over(socket);
-
-        stompClient.connect({}, () => {
-            console.log('Connected to WebSocket');
-            loadFriends();
-        }, (error) => {
-            console.error('WebSocket error:', error);
+            );
         });
+
+        // Remove friend button handler
+        div.querySelector('.remove-btn').addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (confirm(`Remove ${friend.friendUsername} from your friends?`)) {
+                await removeFriend(friend.id);
+                await loadFriends();
+                if (currentConversationId === friend.conversationId) {
+                    document.getElementById('chatHeader').textContent = 'Select a friend to chat';
+                    document.getElementById('messages').innerHTML = '';
+                    document.getElementById('chatForm').style.display = 'none';
+                    currentConversationId = null;
+                }
+            }
+        });
+
+        friendList.appendChild(div);
+    });
+}
+
+// Remove friend request
+async function removeFriend(friendshipId) {
+    const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+    const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+    const headers = {};
+    if (header && token) headers[header] = token;
+
+    try {
+        const res = await fetch(`/message/friendships/${friendshipId}`, {
+            method: 'DELETE',
+            headers: headers
+        });
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(text || 'Failed to remove friend');
+        }
+    } catch (err) {
+        console.error('Error removing friend:', err);
+        alert('Failed to remove friend. Try again later.');
+    }
+}
+
+// Select friend to chat
+async function selectFriend(friendshipId, friendUsername, conversationId, friendId) {
+    if (currentConversationId === conversationId) return;
+
+    currentConversationId = conversationId;
+    currentFriendId = friendId; // store friendId for sending messages
+
+    document.getElementById('chatHeader').textContent = `Chatting with ${friendUsername}`;
+    document.getElementById('messages').innerHTML = '';
+    document.getElementById('chatForm').style.display = 'flex';
+
+    // Highlight active friend
+    document.querySelectorAll('.friend-item').forEach(elem => {
+        elem.classList.toggle('active', elem.dataset.friendshipId === friendshipId);
+    });
+
+    // Unsubscribe previous subscriptions
+    Object.keys(subscriptions).forEach(key => {
+        subscriptions[key].unsubscribe();
+        delete subscriptions[key];
+    });
+
+    // Fetch old messages for this conversation
+    const res = await fetch(`/message/conversation/${conversationId}`);
+    const messages = await res.json();
+    messages.forEach(displayMessage);
+
+    // Subscribe to STOMP topic for conversation
+    subscriptions[conversationId] = stompClient.subscribe(`/topic/conversation/${conversationId}`, (msg) => {
+        const message = JSON.parse(msg.body);
+        displayMessage(message);
+    });
+}
+
+// Display message in chat
+function displayMessage(message) {
+    const container = document.getElementById('messages');
+    if (document.getElementById(`msg-${message.id}`)) return;
+
+    const div = document.createElement('div');
+    div.id = `msg-${message.id}`;
+
+    const isSentByCurrentUser = message.senderId === currentProfileId;
+    div.className = isSentByCurrentUser ? 'message-sent' : 'message-received';
+
+    const time = new Date(message.timestamp).toLocaleTimeString();
+    div.innerHTML = `
+        <div class="message-content">
+            ${message.content} <br/><small class="text-muted">${time}</small>
+        </div>
+    `;
+
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+// Send message handler
+function sendMessage(event) {
+    event.preventDefault();
+    if (!currentConversationId || !currentFriendId) {
+        alert('Select a friend first!');
+        return;
     }
 
-    // DOM ready
-    document.addEventListener('DOMContentLoaded', () => {
-        connect();
+    const input = document.getElementById('chatInput');
+    const content = input.value.trim();
+    if (!content) return;
 
-        document.getElementById('chatForm').addEventListener('submit', sendMessage);
+    // Proper backend payload
+    const message = {
+        conversation: { id: currentConversationId },
+        receiverId: currentFriendId,
+        content: content
+    };
+
+    stompClient.send('/app/sendMessage', {}, JSON.stringify(message));
+    input.value = '';
+}
+
+// Initialize STOMP connection
+function connect() {
+    const socket = new SockJS('/ws');
+    stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, () => {
+        console.log('Connected to WebSocket');
+        loadFriends();
+    }, (error) => {
+        console.error('WebSocket error:', error);
     });
+}
+
+// DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+    connect();
+    document.getElementById('chatForm').addEventListener('submit', sendMessage);
+});
 </script>
+
 </body>
 </html>

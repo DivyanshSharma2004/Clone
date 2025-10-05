@@ -3,9 +3,12 @@ package com.example.demo.services;
 import com.example.demo.enteties.Friendship;
 import com.example.demo.enteties.FriendshipDTO;
 import com.example.demo.enteties.UserProfile;
+import com.example.demo.repository.ConversationRepository;
 import com.example.demo.repository.FriendshipRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -13,10 +16,13 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class FriendshipService {
 
     private final FriendshipRepository friendshipRepository;
 
+    @Autowired
+    ConversationRepository conversationRepository;
     /**
      * Retrieves all friendships for a given user.
      *(AI-Generated Documentation)
@@ -42,15 +48,38 @@ public class FriendshipService {
     }
 
 
+    //because spring doesnt see via just ids get the whole entity to be able to delete.
     /**
      * Removes a bidirectional friendship between two users.
      *(AI-Generated Documentation)
      * @param user1 The first user.
      * @param user2 The second user.
      */
+    @Transactional
     public void removeFriendship(UserProfile user1, UserProfile user2) {
         friendshipRepository.deleteByUserAndFriend(user1, user2);
         friendshipRepository.deleteByUserAndFriend(user2, user1);
+    }
+
+    //because spring doesnt see via just ids get the whole entity to be able to delete.
+
+    /**
+     * Removes a bidirectional friendship between two users using UUID .
+     * @param userId1 The first user.
+     * @param userId2 The second user.
+     */
+    @Transactional
+    public void removeFriendshipById(UUID userId1, UUID userId2) {
+        friendshipRepository.deleteByUserIdAndFriendId(userId1, userId2);
+    }
+
+    /**
+     * checks to see if user is in a certain coonversation
+     * @param userId userid.
+     * @param conversationId conversation id.
+     */
+    public boolean isUserInConversation(UUID userId, UUID conversationId) {
+        return conversationRepository.existsByIdAndUserId(userId, conversationId);
     }
 }
 

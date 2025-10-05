@@ -65,7 +65,7 @@ public class UserController {
         //create model and return
         //FIXME: not working rn
         model.addAttribute("user", user);
-        return "private/user-home";  // Thymeleaf template
+        return "private/home";  // Thymeleaf template
     }
 
     /**
@@ -109,7 +109,6 @@ public class UserController {
         if (selectedImage != null && !selectedImage.isEmpty()) {
             pictureUrl = "/images/profiles/" + selectedImage;
         }
-
         // Check if profile exists
         UserProfile profile = profileRepository.findByUser(user).orElse(new UserProfile());
         profile.setUser(user);

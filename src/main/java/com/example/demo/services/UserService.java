@@ -1,6 +1,7 @@
 package com.example.demo.services;
 
 import com.example.demo.enteties.User;
+import com.example.demo.enteties.UserProfile;
 import com.example.demo.repository.UserRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -56,6 +57,8 @@ public class UserService extends DefaultOAuth2UserService {
         if (optionalUser.isPresent()) {
             user = optionalUser.get();
             httpSession.setAttribute("userId", user.getId());
+            httpSession.setAttribute("profileId",matchService.getCurrentUserProfileId());
+            httpSession.setAttribute("userName",matchService.getCurrentUserProfileId());
         } else {
             user = new User();
             user.setGoogleId(googleId);
@@ -63,6 +66,10 @@ public class UserService extends DefaultOAuth2UserService {
             user.setName(name);
             user.setPictureUrl(picture);
             user.setRole("ROLE_USER");
+            //now usper profile is made by default
+            UserProfile profile = new UserProfile();
+            profile.setUser(user);
+            user.setProfile(profile);
             userRepository.save(user);
             httpSession.setAttribute("userId", user.getId());
             httpSession.setAttribute("profileId",matchService.getCurrentUserProfileId());

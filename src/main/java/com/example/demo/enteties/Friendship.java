@@ -27,12 +27,17 @@ public class Friendship {
 
     private Instant createdAt = Instant.now();
 
+    @ManyToOne
+    @JoinColumn(name = "conversation_id")
+    private Conversation conversation;
+
 
     public Friendship() {}
 
-    public Friendship(UserProfile user, UserProfile friend) {
+    public Friendship(UserProfile user, UserProfile friend, Conversation conversation) {
         this.user = user;
         this.friend = friend;
+        this.conversation = conversation;
     }
 }
 
