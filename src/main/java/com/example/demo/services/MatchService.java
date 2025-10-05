@@ -225,6 +225,7 @@ public class MatchService {
                 .find1on1Conversation(user1.getId(), user2.getId())
                 .orElseGet(() -> conversationRepository.save(Conversation.create1on1(user1, user2)));
 
+        // create bidirectional friendships (for quick lookup)
         if (!friendshipRepository.existsBetween(user1, user2)) {
             Friendship friendship1 = new Friendship(user1, user2, conversation);
             friendship1.setCreatedAt(Instant.now());
