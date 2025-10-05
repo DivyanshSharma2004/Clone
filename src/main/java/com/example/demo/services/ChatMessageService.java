@@ -1,6 +1,7 @@
 package com.example.demo.services;
 
 import com.example.demo.enteties.*;
+import com.example.demo.repository.ConversationRepository;
 import com.example.demo.repository.FriendshipRepository;
 import com.example.demo.repository.ChatMessageRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -16,21 +17,16 @@ public class ChatMessageService {
     @Autowired ChatMessageRepository chatMessageRepository;
     @Autowired FriendshipRepository friendshipRepository; // to get Friendship by id
 
-    //get messages by friendshipID
-    public List<ChatMessage> getMessagesByFriendshipId(UUID friendshipId) {
-        Friendship friendship = friendshipRepository.findById(friendshipId)
-                .orElseThrow(() -> new EntityNotFoundException("Friendship not found"));
-        return chatMessageRepository.findByFriendshipOrderByTimestampAsc(friendship);
+    //get messages by conversationId
+    public List<ChatMessage> getMessagesByConversationId(UUID conversationId) {
+        return chatMessageRepository.findByConversation_IdOrderByTimestampAsc(conversationId);
     }
+
     //save message  to database
     public ChatMessage saveMessage(ChatMessage message) {
-        //make sure the friendship even exits
-        Friendship friendship = friendshipRepository.findById(message.getFriendship().getId())
-                .orElseThrow(() -> new EntityNotFoundException("Friendship not found"));
-        message.setFriendship(friendship);
         message.setTimestamp(Instant.now());
         return chatMessageRepository.save(message);
     }
-}
+}//todo: these all think that youre using friendshipid to get access to messages this is wrong appraoch use conversationid.
 
 

@@ -1,10 +1,7 @@
 package com.example.demo.services;
 
 import com.example.demo.enteties.*;
-import com.example.demo.repository.FriendshipRepository;
-import com.example.demo.repository.MatchRepository;
-import com.example.demo.repository.UserProfileRepository;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.*;
 import jakarta.servlet.http.HttpSession;
 
 import java.util.*;
@@ -28,6 +25,8 @@ public class MatchService {
     private HttpSession httpSession;
     @Autowired
     private FriendshipRepository friendshipRepository;
+    @Autowired
+    private ConversationRepository conversationRepository;
     //batch size for the getMatchCandidatesBatch to use
     private static final int BATCHSIZE = 10;
 
@@ -219,18 +218,18 @@ public class MatchService {
 
         // store friendship with uuid ordered smaller first
         UserProfile first = user1.getId().compareTo(user2.getId()) < 0 ? user1 : user2;
-        UserProfile second = first == user1 ? user2 : user1;
+        UserProfile second = first == user1 ? user2 : user1; //abandonded appraoch speed > size of db.
 
-        // bidirectional friendships, quicker lookup time but space wise worse, matches logic in the friendship service
+        // create conversation if not exists, safer for when people stop being friends and then again
+        Conversation conversation = conversationRepository
+                .find1on1Conversation(user1.getId(), user2.getId())
+                .orElseGet(() -> conversationRepository.save(Conversation.create1on1(user1, user2)));
+
         if (!friendshipRepository.existsBetween(user1, user2)) {
-            Friendship friendship1 = new Friendship();
-            friendship1.setUser(user1);
-            friendship1.setFriend(user2);
+            Friendship friendship1 = new Friendship(user1, user2, conversation);
             friendship1.setCreatedAt(Instant.now());
 
-            Friendship friendship2 = new Friendship();
-            friendship2.setUser(user2);
-            friendship2.setFriend(user1);
+            Friendship friendship2 = new Friendship(user2, user1, conversation);
             friendship2.setCreatedAt(Instant.now());
 
             friendshipRepository.save(friendship1);

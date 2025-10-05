@@ -54,66 +54,70 @@
 
 <!-- language: JavaScript -->
 <script type="text/javascript">
+let stompClient = null;
+let currentConversationId = null;
+let currentFriendId = null; // <-- track the friend we are chatting with
+let subscriptions = {};
 
-    let stompClient = null;
-    let currentFriendshipId = null;
-    let subscriptions = {};
+// Fetch friends and populate sidebar
+async function loadFriends() {
+    const res = await fetch('/message/friendships');
+    const friends = await res.json();
 
-    // Fetch friends and populate sidebar
-    async function loadFriends() {
-        const res = await fetch('/message/friendships');
-        const friends = await res.json();
+    const friendList = document.getElementById('friendList');
+    friendList.innerHTML = '';
 
-        const friendList = document.getElementById('friendList');
-        friendList.innerHTML = '';
+    friends.forEach(friend => {
+        const div = document.createElement('div');
+        div.className = 'friend-item';
+        div.dataset.friendshipId = friend.id;
+        div.dataset.friendUsername = friend.friendUsername;
+        div.dataset.conversationId = friend.conversationId; 
 
-        friends.forEach(friend => {
-            const div = document.createElement('div');
-            div.className = 'friend-item';
-            div.dataset.friendshipId = friend.id;
-            div.dataset.friendUsername = friend.friendUsername;
-            div.dataset.friendId = friend.friendId;
+        div.innerHTML = `
+            <div class="friend-info">
+                <img src="${friend.friendProfilePictureUrl || 'https://via.placeholder.com/40'}"
+                     alt="pic" width="40" height="40" class="rounded-circle" />
+                <strong>${friend.friendUsername}</strong>
+            </div>
+            <button class="remove-btn" title="Remove Friend">🗑️</button>
+        `;
 
-            div.innerHTML = `
-                <div class="friend-info">
-                    <img src="${friend.friendProfilePictureUrl || 'https://via.placeholder.com/40'}"
-                         alt="pic" width="40" height="40" class="rounded-circle" />
-                    <strong>${friend.friendUsername}</strong>
-                </div>
-                <button class="remove-btn" title="Remove Friend">🗑️</button>
-            `;
+        // Clicking anywhere except the remove button opens chat
+        div.addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-btn')) return;
+            selectFriend(
+                friend.id,
+                friend.friendUsername,
+                friend.conversationId,
+                friend.friendId   // <-- pass friendId here
 
-            // Clicking anywhere except the remove button opens chat
-            div.addEventListener('click', (e) => {
-                if (e.target.classList.contains('remove-btn')) return;
-                selectFriend(friend.id, friend.friendUsername);
-            });
-
-            // Remove friend button handler
-            div.querySelector('.remove-btn').addEventListener('click', async (e) => {
-                e.stopPropagation(); // prevent opening chat
-                if (confirm(`Remove ${friend.friendUsername} from your friends?`)) {
-                    await removeFriend(friend.id);
-                    await loadFriends(); // refresh sidebar
-                    if (currentFriendshipId === friend.id) {
-                        document.getElementById('chatHeader').textContent = 'Select a friend to chat';
-                        document.getElementById('messages').innerHTML = '';
-                        document.getElementById('chatForm').style.display = 'none';
-                        currentFriendshipId = null;
-                    }
-                }
-            });
-
-            friendList.appendChild(div);
+            );
         });
-    }
 
-    // Remove friend request
-    async function removeFriend(friendshipId) {
+        // Remove friend button handler
+        div.querySelector('.remove-btn').addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (confirm(`Remove ${friend.friendUsername} from your friends?`)) {
+                await removeFriend(friend.id);
+                await loadFriends();
+                if (currentConversationId === friend.conversationId) {
+                    document.getElementById('chatHeader').textContent = 'Select a friend to chat';
+                    document.getElementById('messages').innerHTML = '';
+                    document.getElementById('chatForm').style.display = 'none';
+                    currentConversationId = null;
+                }
+            }
+        });
+
+        friendList.appendChild(div);
+    });
+}
+
+// Remove friend request
+async function removeFriend(friendshipId) {
     const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
     const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
-    console.log('CSRF header:', header);
-    console.log('CSRF token:', token);
 
     const headers = {};
     if (header && token) headers[header] = token;
@@ -127,114 +131,110 @@
             const text = await res.text();
             throw new Error(text || 'Failed to remove friend');
         }
-        console.log('Friend removed successfully');
     } catch (err) {
         console.error('Error removing friend:', err);
         alert('Failed to remove friend. Try again later.');
     }
 }
 
-    // Select friend to chat
-    async function selectFriend(friendshipId, friendUsername) {
-        if (currentFriendshipId === friendshipId) return; // no change
+// Select friend to chat
+async function selectFriend(friendshipId, friendUsername, conversationId, friendId) {
+    if (currentConversationId === conversationId) return;
 
-        currentFriendshipId = friendshipId;
+    currentConversationId = conversationId;
+    currentFriendId = friendId; // store friendId for sending messages
 
-        document.getElementById('chatHeader').textContent = `Chatting with ${friendUsername}`;
-        document.getElementById('messages').innerHTML = '';
-        document.getElementById('chatForm').style.display = 'flex';
+    document.getElementById('chatHeader').textContent = `Chatting with ${friendUsername}`;
+    document.getElementById('messages').innerHTML = '';
+    document.getElementById('chatForm').style.display = 'flex';
 
-        // Highlight active friend
-        document.querySelectorAll('.friend-item').forEach(elem => {
-            elem.classList.toggle('active', elem.dataset.friendshipId === friendshipId);
-        });
-
-        // Unsubscribe previous subscription
-        if (subscriptions[currentFriendshipId]) {
-            subscriptions[currentFriendshipId].unsubscribe();
-            delete subscriptions[currentFriendshipId];
-        }
-
-        // Fetch old messages
-        const res = await fetch(`/message/friendship/${friendshipId}`);
-        const messages = await res.json();
-        messages.forEach(displayMessage);
-
-        // Subscribe to STOMP topic for live messages
-        subscriptions[friendshipId] = stompClient.subscribe(`/topic/friendship/${friendshipId}`, (msg) => {
-            const message = JSON.parse(msg.body);
-            displayMessage(message);
-        });
-    }
-
-    // Display message in chat
-    function displayMessage(message) {
-        const container = document.getElementById('messages');
-
-        // Avoid duplicate messages if already present (optional)
-        if (document.getElementById(`msg-${message.id}`)) return;
-
-        const div = document.createElement('div');
-        div.id = `msg-${message.id}`;
-
-        // Simple styling: messages sent by current user right-aligned
-        const isSentByCurrentUser = message.senderId === currentProfileId;
-        div.className = isSentByCurrentUser ? 'message-sent' : 'message-received';
-
-        const time = new Date(message.timestamp).toLocaleTimeString();
-
-        div.innerHTML = `
-            <div class="message-content">
-                ${message.content} <br/><small class="text-muted">${time}</small>
-            </div>
-        `;
-
-        container.appendChild(div);
-        container.scrollTop = container.scrollHeight; // scroll to bottom
-    }
-
-    // Send message handler
-    function sendMessage(event) {
-        event.preventDefault();
-
-        if (!currentFriendshipId) {
-            alert('Select a friend first!');
-            return;
-        }
-
-        const input = document.getElementById('chatInput');
-        const content = input.value.trim();
-        if (!content) return;
-
-        // Build message object
-        const message = {
-            friendshipId: currentFriendshipId,
-            senderId: currentProfileId,
-            content: content
-        };
-
-        stompClient.send('/app/sendMessage', {}, JSON.stringify(message));
-        input.value = '';
-    }
-
-    // Initialize STOMP connection
-    function connect() {
-        const socket = new SockJS('/ws');
-        stompClient = Stomp.over(socket);
-
-        stompClient.connect({}, () => {
-            console.log('Connected to WebSocket');
-            loadFriends();
-        }, (error) => {
-            console.error('WebSocket error:', error);
-        });
-    }
-
-    // DOM ready
-    document.addEventListener('DOMContentLoaded', () => {
-        connect();
-        document.getElementById('chatForm').addEventListener('submit', sendMessage);
+    // Highlight active friend
+    document.querySelectorAll('.friend-item').forEach(elem => {
+        elem.classList.toggle('active', elem.dataset.friendshipId === friendshipId);
     });
+
+    // Unsubscribe previous subscriptions
+    Object.keys(subscriptions).forEach(key => {
+        subscriptions[key].unsubscribe();
+        delete subscriptions[key];
+    });
+
+    // Fetch old messages for this conversation
+    const res = await fetch(`/message/conversation/${conversationId}`);
+    const messages = await res.json();
+    messages.forEach(displayMessage);
+
+    // Subscribe to STOMP topic for conversation
+    subscriptions[conversationId] = stompClient.subscribe(`/topic/conversation/${conversationId}`, (msg) => {
+        const message = JSON.parse(msg.body);
+        displayMessage(message);
+    });
+}
+
+// Display message in chat
+function displayMessage(message) {
+    const container = document.getElementById('messages');
+    if (document.getElementById(`msg-${message.id}`)) return;
+
+    const div = document.createElement('div');
+    div.id = `msg-${message.id}`;
+
+    const isSentByCurrentUser = message.senderId === currentProfileId;
+    div.className = isSentByCurrentUser ? 'message-sent' : 'message-received';
+
+    const time = new Date(message.timestamp).toLocaleTimeString();
+    div.innerHTML = `
+        <div class="message-content">
+            ${message.content} <br/><small class="text-muted">${time}</small>
+        </div>
+    `;
+
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+// Send message handler
+function sendMessage(event) {
+    event.preventDefault();
+    if (!currentConversationId || !currentFriendId) {
+        alert('Select a friend first!');
+        return;
+    }
+
+    const input = document.getElementById('chatInput');
+    const content = input.value.trim();
+    if (!content) return;
+
+    // Proper backend payload
+    const message = {
+        conversation: { id: currentConversationId },
+        receiverId: currentFriendId,
+        content: content
+    };
+
+    stompClient.send('/app/sendMessage', {}, JSON.stringify(message));
+    input.value = '';
+}
+
+// Initialize STOMP connection
+function connect() {
+    const socket = new SockJS('/ws');
+    stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, () => {
+        console.log('Connected to WebSocket');
+        loadFriends();
+    }, (error) => {
+        console.error('WebSocket error:', error);
+    });
+}
+
+// DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+    connect();
+    document.getElementById('chatForm').addEventListener('submit', sendMessage);
+});
 </script>
+
 </body>
 </html>

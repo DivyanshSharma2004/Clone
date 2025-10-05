@@ -21,6 +21,9 @@ public interface FriendshipRepository extends JpaRepository<Friendship, UUID> {
 //            "WHERE f.user.id = :id OR f.friend.id = :id")
 //    List<Friendship> findFriendshipsWithUsers(@Param("id") UUID id);
 
+    //used to check if message sent is being sent into a conversation id that exists and to a friendship thats still active
+    boolean existsByConversation_IdAndUser_Id(UUID conversationId, UUID userId);
+
     //use to avoid lazy-instalization coded by chatgpt to debug this query
     @Query("SELECT f FROM Friendship f " +
             "JOIN FETCH f.friend " +

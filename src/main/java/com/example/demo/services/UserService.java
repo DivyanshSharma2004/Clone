@@ -58,6 +58,7 @@ public class UserService extends DefaultOAuth2UserService {
             user = optionalUser.get();
             httpSession.setAttribute("userId", user.getId());
             httpSession.setAttribute("profileId",matchService.getCurrentUserProfileId());
+            httpSession.setAttribute("userName",matchService.getCurrentUserProfileId());
         } else {
             user = new User();
             user.setGoogleId(googleId);

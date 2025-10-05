@@ -3,8 +3,10 @@ package com.example.demo.services;
 import com.example.demo.enteties.Friendship;
 import com.example.demo.enteties.FriendshipDTO;
 import com.example.demo.enteties.UserProfile;
+import com.example.demo.repository.ConversationRepository;
 import com.example.demo.repository.FriendshipRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,8 @@ public class FriendshipService {
 
     private final FriendshipRepository friendshipRepository;
 
+    @Autowired
+    ConversationRepository conversationRepository;
     /**
      * Retrieves all friendships for a given user.
      *(AI-Generated Documentation)
@@ -69,5 +73,13 @@ public class FriendshipService {
         friendshipRepository.deleteByUserIdAndFriendId(userId1, userId2);
     }
 
+    /**
+     * checks to see if user is in a certain coonversation
+     * @param userId userid.
+     * @param conversationId conversation id.
+     */
+    public boolean isUserInConversation(UUID userId, UUID conversationId) {
+        return conversationRepository.existsByIdAndUserId(userId, conversationId);
+    }
 }
 

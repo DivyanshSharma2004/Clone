@@ -1,9 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.enteties.ChatMessage;
-import com.example.demo.enteties.ChatMessageDTO;
-import com.example.demo.enteties.FriendshipDTO;
-import com.example.demo.enteties.UserProfile;
+import com.example.demo.enteties.*;
 import com.example.demo.repository.ChatMessageRepository;
 import com.example.demo.repository.UserProfileRepository;
 import com.example.demo.services.FriendshipService;
@@ -18,13 +15,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Controller
-@RequestMapping("/message")
 public class FriendshipController {
 
     @Autowired
@@ -40,12 +37,38 @@ public class FriendshipController {
     @Autowired
     private HttpSession httpSession;
 
+
+    @GetMapping("/conversation/{conversationId}")
+    @ResponseBody
+    public ResponseEntity<List<ChatMessageResponse>> getMessagesByConversation(@PathVariable UUID conversationId) {
+        List<ChatMessage> messages = chatMessageService.getMessagesByConversationId(conversationId);
+        List<ChatMessageResponse> dtos = new ArrayList<>();
+        //should use streams but wont be aproblem if i change the pagnation method
+        for (ChatMessage message : messages) {
+            String senderName = userProfileRepository.findById(message.getSenderId())
+                    .map(UserProfile::getName)
+                    .orElse("Unknown");
+
+            ChatMessageResponse dto = new ChatMessageResponse(
+                    message.getId(),
+                    message.getConversation().getId(),
+                    senderName,
+                    message.getContent(),
+                    message.getTimestamp()
+            );
+
+            dtos.add(dto);
+        }
+
+        return ResponseEntity.ok(dtos);
+    }
+
     /**
      * Displays the messaging page (Thymeleaf view).
      *(AI-Generated Documentation)
      * @return The path to the private messages page.
      */
-    @GetMapping("/home")
+    @GetMapping("/message/home")
     public String messagingPage() {
         return "/private/messages"; // Thymeleaf view
     }
@@ -55,7 +78,7 @@ public class FriendshipController {
      *(AI-Generated Documentation)
      * @return A ResponseEntity containing a list of FriendshipDTO objects.
      */
-    @GetMapping("/friendships")
+    @GetMapping("/message/friendships")
     @ResponseBody
     public ResponseEntity<List<FriendshipDTO>> getFriendships() {
         UUID profileId = (UUID) httpSession.getAttribute("profileId");
@@ -63,43 +86,14 @@ public class FriendshipController {
         return ResponseEntity.ok(friendships);
     }
 
-    /**
-     * Retrieves all chat messages associated with a given friendship.
-     *(AI-Generated Documentation)
-     * @param friendshipId The ID of the friendship.
-     * @return A ResponseEntity containing a list of ChatMessage objects.
-     */
-    @GetMapping("/friendship/{friendshipId}")
-    public ResponseEntity<List<ChatMessageDTO>> getMessagesByFriendship(@PathVariable UUID friendshipId) {
-        List<ChatMessage> messages = chatMessageService.getMessagesByFriendshipId(friendshipId);
-        List<ChatMessageDTO> dtos = messages.stream()
-                .map(ChatMessageDTO::createMessageDTO)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
-    }
-
-    /**
-     * Sends a chat message to a specific friendship conversation.
-     * (AI-Generated Documentation)
-     * <p>
-     * This method also broadcasts the message to all subscribers of the friendship topic.
-     *
-     * @param friendshipId The ID of the friendship.
-     * @param message      The chat message to send.
-     */
-    @MessageMapping("/chat/{friendshipId}")
-    public void sendMessage(@DestinationVariable UUID friendshipId, ChatMessage message) {
-        message.setTimestamp(Instant.now());
-        chatMessageRepository.save(message);
-        messagingTemplate.convertAndSend("/topic/friendship/" + friendshipId, message);
-    }
+    //FIXME: currently not working
     /**
      * Removes a bidirectional friendship between the current user and a friend.
      *
      * @param friendId The UUID of the friend to remove.
      * @return ResponseEntity with success message.
      */
-    @DeleteMapping("/friendships/{friendId}")
+    @DeleteMapping("/message/friendships/{friendId}")
     @ResponseBody
     public ResponseEntity<String> removeFriendship(@PathVariable UUID friendId) {
         UUID currentProfileId = (UUID) httpSession.getAttribute("profileId");

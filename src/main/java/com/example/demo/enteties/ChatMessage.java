@@ -7,18 +7,17 @@ import lombok.Setter;
 import java.time.Instant;
 import java.util.UUID;
 
-@Setter
-@Getter
 @Entity
 @Table(name = "messages")
+@Getter @Setter
 public class ChatMessage {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "friendship_id", nullable = false)
-    private Friendship friendship;
+    @JoinColumn(name = "conversation_id", nullable = false)
+    private Conversation conversation;
 
     @Column(name = "sender_id", nullable = false)
     private UUID senderId;
@@ -31,7 +30,4 @@ public class ChatMessage {
 
     @Column(nullable = false)
     private Instant timestamp;
-
-
-
 }
