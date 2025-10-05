@@ -56,5 +56,4 @@ public class LoginController {
         httpSession.invalidate(); // Invalidate session
         return "redirect:/login?logout"; // Redirect user after logout
     }
-
 }
